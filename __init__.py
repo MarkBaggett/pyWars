@@ -1,0 +1,1 @@
+from pyWars.pyWars import *

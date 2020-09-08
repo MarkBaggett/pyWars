@@ -1,9 +1,4 @@
-from setuptools import setup, find_packages
-setup(
-    name="pyWars",
-    version="4.0",
-    packages=find_packages(),
-    install_requires=[
-        "requests >=2.20.0",
-        ],
-)
+import os
+from distutils.sysconfig import get_python_lib
+from shutil import copyfile
+copyfile('pyWars.py', os.path.join(get_python_lib(), 'pyWars.py'))

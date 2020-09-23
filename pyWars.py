@@ -103,22 +103,21 @@ class exercise(object):
         if isinstance(qnum, str):
             new_folder = qnum
             qnum = self.name2num(qnum)
-            if qnum == -1:
+            if qnum < 0:
                 return "Invalid Question Name"
         elif not isinstance(qnum,int):
             return "Invalid Question Number"
         else:
             new_folder = f"data{qnum}"
-        tgt_path = pathlib.Path(self.file_location) / new_folder
-        if tgt_path.exists():
-            overwrite = input("The path already exists. Do you want to over write the current directory,\"yes\" or \"no\"? ").lower()
-            if overwrite != "yes":
-                print("Data ignored. The original directory was not changed.")
-                return             
+        tgt_path = pathlib.Path(self.file_location) / new_folder            
         url = f"{self.server}/data/{qnum}"
         data_blob = self.browser.get(url).json().get("blob").encode()
         data_var = pickle.loads(codecs.decode(data_blob,"base64"))
-        if store:
+        if store and tgt_path.exists():
+            overwrite = input("The path already exists. Do you want to over write the current directory,\"yes\" or \"no\"? ").lower()
+            if overwrite != "yes":
+                print("Data ignored. The original directory was not changed.")
+        elif store:
             if (not isinstance(data_var,bytes)) or (not data_var.startswith(b"PK")):
                 print("Data does not appear to be a zip file. Storage skipped.")
             else:             
@@ -138,6 +137,14 @@ class exercise(object):
             return "Please login first"
         url = f"{self.server}/answer/"
         resp = self.post_json(url, {'answer':str(answer).strip()})
+        return resp.get("text")
+
+    def password(self,current_password,new_password):
+        """This changes your password. Provide the current password and the new password."""
+        if not self.loggedin:
+            return "Please login first.  If you dont know your password contact SANS or your instructor to reset it."
+        url = f"{self.server}/userpassword/"
+        resp = self.post_json(url, {'currentpass':current_password,"newpass":new_password})
         return resp.get("text")
 
     def name2num(self,name):

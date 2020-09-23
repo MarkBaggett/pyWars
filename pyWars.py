@@ -101,12 +101,15 @@ class exercise(object):
         if not self.loggedin:
             return "Please login first"
         if isinstance(qnum, str):
+            new_folder = qnum
             qnum = self.name2num(qnum)
             if qnum == -1:
                 return "Invalid Question Name"
         elif not isinstance(qnum,int):
             return "Invalid Question Number"
-        tgt_path = pathlib.Path(self.file_location) / f"data{qnum}"
+        else:
+            new_folder = f"data{qnum}"
+        tgt_path = pathlib.Path(self.file_location) / new_folder
         if tgt_path.exists():
             overwrite = input("The path already exists. Do you want to over write the current directory,\"yes\" or \"no\"? ").lower()
             if overwrite != "yes":

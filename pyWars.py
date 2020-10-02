@@ -161,8 +161,8 @@ class exercise(object):
         if not isinstance(source_code,str):
             return "This method is expecting a path to a file or directory."
         src_path = pathlib.Path(source_code)
+        src_path = src_path.expanduser().resolve(strict=True)
         if src_path.is_dir():
-            src_path = src_path.expanduser().resolve(strict=True)
             file_list = src_path.rglob('*')
         elif src_path.is_file():
             file_list = [src_path]

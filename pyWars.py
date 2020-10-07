@@ -20,7 +20,7 @@ class exercise(object):
         self.hold_username = None
         self.hold_password = None
         self.loggedin = False
-        self.question_detail = False
+        self.show_question_detail = False
         self.show_all_scores = False
         self.file_location = pathlib.Path().home() / "Desktop"
         
@@ -86,12 +86,15 @@ class exercise(object):
             qnum = self.name2num(qnum)
             if qnum == -1:
                 return "Invalid Question Name"
-        elif not isinstance(qnum,int):
-            return "Invalid Question Number"
+        elif isinstance(qnum,int):
+            if not (0 <= qnum < len(self.names)):
+                return "Invalid Question Number"
+        else:
+            return "Question number must be an integer or string"
         url = f"{self.server}/question/{qnum}"
         resp = self.browser.get(url).json()
         qtxt = resp.get("text")
-        if not ("timeout" in resp) or (not self.question_detail):
+        if not ("timeout" in resp) or (not self.show_question_detail):
             return qtxt
         print("Question: {} - {}".format(qnum, self.names[qnum]))
         print("Points  : {}".format(resp.get("points") ))
@@ -162,7 +165,7 @@ class exercise(object):
 
     def num2name(self,qnum):
         """The reverse DNS of pywars questions. Given a question number returns the question name"""
-        if 0 < qnum < len(self.names):
+        if 0 <= qnum < len(self.names):
             return self.names[qnum]
         else:
             return -1

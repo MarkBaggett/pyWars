@@ -12,24 +12,27 @@ if sys.version_info.major==2:
     input = raw_input
 
 class exercise(object):
-    def __init__(self,url=None):
-        if not url:
-            self.server = "http://127.0.0.1:10000"
-        else:
-            self.server = url
+    def __init__(self,url):
+        self.server = url
         self.browser = requests.session()
         self.browser.headers['User-Agent']='sanspywarsgpyc 4.0'
         self.names = []
         self.hold_username = None
         self.hold_password = None
         self.loggedin = False
+        self.question_detail = False
+        self.show_all_scores = False
         self.file_location = pathlib.Path().home() / "Desktop"
         
     def new_acct(self,uname,password,reg_code):
         """Use this method to create an account.  It takes three arguments, a username, a password and a registration code."""
         url = f"{self.server}/usernew/"
-        resp = self.post_json(url, {'user':uname,'password':password,"reg_code":reg_code} )
-        return resp.get("text")
+        resp = self.__post_json(url, {'user':uname,'password':password,"reg_code":reg_code} )
+        result = resp.get("text","Account Registration Failed")
+        if result == "Success":
+            self.hold_username = uname
+            self.hold_password = password
+        return result
 
     def login(self,uname = None,password = None):
         """Use this method to login. It requires two arguments, a username and password."""
@@ -40,7 +43,7 @@ class exercise(object):
         if not uname or not password:
             return "Username and Password are required."
         url = f"{self.server}/userlogin/"
-        resp = self.post_json(url,{'user':uname,'password':password})
+        resp = self.__post_json(url,{'user':uname,'password':password})
         login = resp.get("text")
         if login == "Login Success":
             self.hold_username = uname
@@ -64,13 +67,15 @@ class exercise(object):
         if not self.loggedin:
             return "Please login first"
         url = f"{self.server}/score/"
-        resp = self.post_json(url, {'show_all':show_all} )
+        show_all = show_all or self.show_all_scores
+        resp = self.__post_json(url, {'show_all':show_all} )
         sb = resp.get("text",{})
         if not isinstance(sb,dict):
             print(sb)
         for name,score_tuple in sorted(sb.items(), key=lambda x:x[1][0], reverse=True):
             score,complete,lastscore = score_tuple
-            print(f"{name[:15]: ^15}-Points:{score:0>3} Scored:{lastscore[5:-4]} Completed:{collapse_points(complete)}")
+            finished = _collapse_points(complete)
+            print(f"{name[:15]: ^15}-Points:{score:0>3} Scored:{lastscore[5:-4]} Completed:{finished}")
         return None
 
     def question(self,qnum):
@@ -86,45 +91,46 @@ class exercise(object):
         url = f"{self.server}/question/{qnum}"
         resp = self.browser.get(url).json()
         qtxt = resp.get("text")
-        if "timeout" in resp:
-            print("Question: {} - {}".format(qnum, self.names[qnum]))
-            print("Points  : {}".format(resp.get("points") ))
-            print("Timeout : {}".format(resp.get("timeout") or "Not Timed"))
-            print("Attempts: {}".format(resp.get("tries") or "UNLIMITED"))
-            print("PREREQ  : {}".format(resp.get("prereq") or "NONE"))
-            print("TEXT    :\n\n{}".format(qtxt))
-        else:
+        if not ("timeout" in resp) or (not self.question_detail):
             return qtxt
+        print("Question: {} - {}".format(qnum, self.names[qnum]))
+        print("Points  : {}".format(resp.get("points") ))
+        print("Timeout : {}".format(resp.get("timeout") or "Not Timed"))
+        print("Attempts: {}".format(resp.get("tries") or "UNLIMITED"))
+        print("PREREQ  : {}".format(resp.get("prereq") or "NONE"))
+        print("TEXT    :\n\n{}".format(qtxt))
+        return None        
 
-    def data(self,qnum, store=False):
+    def data(self,qnum):
         """This method given a question name or number will return the data for the question.  If you also pass True it will assume the data is a zip, write it to your desktop and unzip it."""
         if not self.loggedin:
             return "Please login first"
         if isinstance(qnum, str):
             new_folder = qnum
             qnum = self.name2num(qnum)
-            if qnum < 0:
+            if qnum == -1:
                 return "Invalid Question Name"
-        elif not isinstance(qnum,int):
-            return "Invalid Question Number"
+        elif isinstance(qnum,int):
+            new_folder = self.num2name(qnum)
+            if new_folder == -1:
+                return "Invalid Question Number"
         else:
-            new_folder = f"data{qnum}"
+            return "Question number must be an integer or string"
         tgt_path = pathlib.Path(self.file_location) / new_folder            
         url = f"{self.server}/data/{qnum}"
         data_blob = self.browser.get(url).json().get("blob").encode()
         data_var = pickle.loads(codecs.decode(data_blob,"base64"))
-        if store and tgt_path.exists():
-            overwrite = input("The path already exists. Do you want to over write the current directory,\"yes\" or \"no\"? ").lower()
-            if overwrite != "yes":
-                print("Data ignored. The original directory was not changed.")
-        elif store:
-            if (not isinstance(data_var,bytes)) or (not data_var.startswith(b"PK")):
-                print("Data does not appear to be a zip file. Storage skipped.")
-            else:             
+        if isinstance(data_var,bytes) and data_var.startswith(b"PK"):
+            write_file = True
+            if tgt_path.exists(): 
+                write_file = input("The path already exists. Do you want to over write the current directory,\"yes\" or \"no\"? ").lower() == "yes"
+            if write_file:             
                 with tgt_path as write_zip:
                     with zipfile.ZipFile(BytesIO(data_var),"r") as zip_ref:
                         zip_ref.extractall(write_zip)
-                data_var = f"Zip extracted to {str(tgt_path)}"
+                return f"Zip extracted to {str(tgt_path)}"
+            else:
+                print("You did not type 'yes'. The original directory was not changed.")     
         return data_var
 
     def answer(self,answer,notanswer=None):
@@ -136,7 +142,7 @@ class exercise(object):
         if not self.loggedin:
             return "Please login first"
         url = f"{self.server}/answer/"
-        resp = self.post_json(url, {'answer':str(answer).strip()})
+        resp = self.__post_json(url, {'answer':str(answer).strip()})
         return resp.get("text")
 
     def password(self,current_password,new_password):
@@ -144,13 +150,20 @@ class exercise(object):
         if not self.loggedin:
             return "Please login first.  If you dont know your password contact SANS or your instructor to reset it."
         url = f"{self.server}/userpassword/"
-        resp = self.post_json(url, {'currentpass':current_password,"newpass":new_password})
+        resp = self.__post_json(url, {'currentpass':current_password,"newpass":new_password})
         return resp.get("text")
 
     def name2num(self,name):
         """The DNS of pywars questions. Given a question name returns the question number"""
         if name.lower() in self.names:
             return self.names.index(name.lower())
+        else:
+            return -1
+
+    def num2name(self,qnum):
+        """The reverse DNS of pywars questions. Given a question number returns the question name"""
+        if 0 < qnum < len(self.names):
+            return self.names[qnum]
         else:
             return -1
 
@@ -178,7 +191,7 @@ class exercise(object):
             data = tmpfile.read()
         data = codecs.encode(data, "base64").decode()
         url = f"{self.server}/unittest/"
-        resp = self.post_json(url,{'code':data.strip()})
+        resp = self.__post_json(url,{'code':data.strip()})
         if resp.get("text"):
             print(resp.get('text'))
         if resp.get("blob"):
@@ -186,7 +199,7 @@ class exercise(object):
             print(results.decode())
         return
     
-    def post_json(self,url, dict):
+    def __post_json(self,url, dict):
         """Internal Only - Posts to the website and process the response. """
         try:
             data = json.dumps(dict)
@@ -199,7 +212,7 @@ class exercise(object):
             return {}
         return resp.json()
 
-def collapse_points(lon):
+def _collapse_points(lon):
     """Internal Only-Make scoreboard look nice"""
     lon.sort()
     lon.append(-999999999999999999999999)

@@ -6,6 +6,7 @@ import zipfile
 import pathlib
 import tempfile
 import sys
+import datetime
 from io import BytesIO
 
 if sys.version_info.major==2:
@@ -72,10 +73,13 @@ class exercise(object):
         sb = resp.get("text",{})
         if not isinstance(sb,dict):
             print(sb)
+        position = 1
         for name,score_tuple in sorted(sb.items(), key=lambda x:x[1][0], reverse=True):
             score,complete,lastscore = score_tuple
+            lsd = datetime.datetime.strptime(lastscore, "%a, %d %b %Y %H:%M:%S %Z")
+            date_hour = datetime.datetime.strftime(lsd, "%b,%d %H:%M:%S")
             finished = _collapse_points(complete)
-            print(f"{name[:15]: ^15}-Points:{score:0>3} Scored:{lastscore[5:-4]} Completed:{finished}")
+            print(f"{position:0>3}-{name[:15]: ^15} Points:{score:0>3}   Scored:{date_hour}   Completed:{finished}")
         return None
 
     def question(self,qnum):

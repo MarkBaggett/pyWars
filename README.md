@@ -20,15 +20,18 @@ $ import pyWars
 
 Once your account the account is created and logged in you can use the following methods to interact with the server:
  - ```d.question(<question name or number>)``` - Retrieve and show the question.
- - ```d.data(<question name or number>,[True])``` - Retrieve and show a sample of the data. If True is second argument data is unzipped for you.
+ - ```d.data(<question name or number>)``` - Retrieve and show a sample of the data. If True is second argument data is unzipped for you.
  - ```d.answer(<your answer>)``` - Submit the answer for the last data you queried.
  - ```d.solution(<path to your solution script>)``` - Submit your code for review and scoring
  - ```d.score([True])``` - Retrieve and show the scoreboard.  If True is passed it will display all scocres instead of only yours.
  - ```d.logout()``` - Log out from your current session.
  - ```d.password(current,new)``` - Change the password for the logged on account from current to new.
  - ```print(d.names)``` - show a list of all loaded challenge names
- 
+ - ```d.name2num(<question name>)``` - Lookup a question number from its name.
+ - ```d.num2name(<question number>)``` - Lookup a question name from its number.
 
+
+ Note: You must know the current password to change it.  The SANS Instructor or SANS Support can reset your password. 
 
 
 

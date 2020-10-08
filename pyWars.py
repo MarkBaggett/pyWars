@@ -77,6 +77,7 @@ class exercise(object):
         for name,score_tuple in sorted(sb.items(), key=lambda x:x[1][0], reverse=True):
             score,complete,lastscore = score_tuple
             lsd = datetime.datetime.strptime(lastscore, "%a, %d %b %Y %H:%M:%S %Z")
+            lsd = lsd.replace(tzinfo=datetime.timezone.utc).astimezone()
             date_hour = datetime.datetime.strftime(lsd, "%b,%d %H:%M:%S")
             finished = _collapse_points(complete)
             print(f"{position:0>3}-{name[:15]: ^15} Points:{score:0>3}   Scored:{date_hour}   Completed:{finished}")
@@ -99,13 +100,14 @@ class exercise(object):
         resp = self.browser.get(url).json()
         qtxt = resp.get("text")
         if not ("timeout" in resp) or (not self.show_question_detail):
-            return qtxt
-        print("Question: {} - {}".format(qnum, self.names[qnum]))
-        print("Points  : {}".format(resp.get("points") ))
-        print("Timeout : {}".format(resp.get("timeout") or "Not Timed"))
-        print("Attempts: {}".format(resp.get("tries") or "UNLIMITED"))
-        print("PREREQ  : {}".format(resp.get("prereq") or "NONE"))
-        print("TEXT    :\n\n{}".format(qtxt))
+            print(qtxt)
+        else:
+            print("Question: {} - {}".format(qnum, self.names[qnum]))
+            print("Points  : {}".format(resp.get("points") ))
+            print("Timeout : {}".format(resp.get("timeout") or "Not Timed"))
+            print("Attempts: {}".format(resp.get("tries") or "UNLIMITED"))
+            print("PREREQ  : {}".format(resp.get("prereq") or "NONE"))
+            print("TEXT    :\n\n{}".format(qtxt))
         return None        
 
     def data(self,qnum):

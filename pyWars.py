@@ -23,6 +23,7 @@ class exercise(object):
         self.loggedin = False
         self.show_question_detail = False
         self.show_all_scores = False
+        self.show_answer_warnings = True
         self.file_location = pathlib.Path().home() / "Desktop"
         
     def new_acct(self,uname,password,reg_code):
@@ -83,7 +84,7 @@ class exercise(object):
             print(f"{position:0>3}-{name[:15]: ^15} Points:{score:0>3}   Scored:{date_hour}   Completed:{finished}")
         return None
 
-    def question(self,qnum):
+    def question(self,qnum,show_detail=False):
         """This method given a question name or number will return the question text."""
         if not self.loggedin:
             return "Please login first"
@@ -96,6 +97,7 @@ class exercise(object):
                 return "Invalid Question Number"
         else:
             return "Question number must be an integer or string"
+        show_detail = show_detail or self.show_question_detail
         url = f"{self.server}/question/{qnum}"
         resp = self.browser.get(url).json()
         qtxt = resp.get("text")
@@ -145,8 +147,9 @@ class exercise(object):
     def answer(self,answer,notanswer=None):
         """This method takes one argument which should be the answer to the data object you queried last."""
         if notanswer:
-            print("Note: In this version .answer() does not require the question number. Only the answer.")
-            print(f"I fixed it for you this time and submitted .answer({notanswer})")
+            if self.show_answer_warnings:
+                print("Note: In this version .answer() does not require the question number. Only the answer.")
+                print(f"I fixed it for you this time and submitted .answer({notanswer})")
             answer = notanswer
         if not self.loggedin:
             return "Please login first"

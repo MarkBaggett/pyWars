@@ -163,6 +163,8 @@ class exercise(object):
             return "Please login first.  If you dont know your password contact SANS or your instructor to reset it."
         url = f"{self.server}/userpassword/"
         resp = self.__post_json(url, {'currentpass':current_password,"newpass":new_password})
+        if resp.get("text","") == "Success":
+            self.hold_password = new_password
         return resp.get("text")
 
     def name2num(self,name):

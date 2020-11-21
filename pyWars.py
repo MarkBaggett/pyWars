@@ -167,6 +167,14 @@ class exercise(object):
             self.hold_password = new_password
         return resp.get("text")
 
+    def displayname(self,new_displayname):
+        """This changes your display name on the scoreboard."""
+        if not self.loggedin:
+            return "Please login first"
+        url = f"{self.server}/userdisplay/"
+        resp = self.__post_json(url, {'displayname':new_displayname})
+        return resp.get("text")
+
     def name2num(self,name):
         """The DNS of pywars questions. Given a question name returns the question number"""
         if name.lower() in self.names:

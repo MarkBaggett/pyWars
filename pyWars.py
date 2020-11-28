@@ -8,6 +8,8 @@ import tempfile
 import sys
 import datetime
 from io import BytesIO
+from rich.console import Console
+from rich.table import Table 
 
 if sys.version_info.major==2:
     input = raw_input
@@ -21,7 +23,7 @@ class exercise(object):
         self.hold_username = None
         self.hold_password = None
         self.loggedin = False
-        self.show_question_detail = False
+        self.print_rich_text = False
         self.show_all_scores = False
         self.show_answer_warnings = True
         self.file_location = pathlib.Path().home() / "Desktop"
@@ -75,13 +77,18 @@ class exercise(object):
         if not isinstance(sb,dict):
             print(sb)
         position = 1
+        score_table = Table("Rank","Name","Score","Last Scored","Completed", title="Scoreboard", show_lines=True)
         for name,score_tuple in sorted(sb.items(), key=lambda x:x[1][0], reverse=True):
             score,complete,lastscore = score_tuple
             lsd = datetime.datetime.strptime(lastscore, "%a, %d %b %Y %H:%M:%S %Z")
             lsd = lsd.replace(tzinfo=datetime.timezone.utc).astimezone()
             date_hour = datetime.datetime.strftime(lsd, "%b,%d %H:%M:%S")
             finished = _collapse_points(complete)
-            print(f"{position:0>3}-{name[:15]: ^15} Points:{score:0>3}   Scored:{date_hour}   Completed:{finished}")
+            score_table.add_row(f"{position:0>3}",f"{name}", f"{score:0>3}", f"{date_hour}", f"{finished}")
+            if not self.print_rich_text:
+                print(f"{position:0>3}-{name[:15]: ^15} Points:{score:0>3}   Scored:{date_hour}   Completed:{finished}")
+        if self.print_rich_text:
+            the_console.print(score_table)
         return None
 
     def question(self,qnum,show_detail=False):
@@ -97,19 +104,23 @@ class exercise(object):
                 return "Invalid Question Number"
         else:
             return "Question number must be an integer or string"
-        show_detail = show_detail or self.show_question_detail
+        show_detail = show_detail or self.print_rich_text
         url = f"{self.server}/question/{qnum}"
         resp = self.browser.get(url).json()
         qtxt = resp.get("text")
-        if not ("timeout" in resp) or (not self.show_question_detail):
+        if not ("timeout" in resp) or (not self.print_rich_text):
             print(qtxt)
         else:
-            print("Question: {} - {}".format(qnum, self.names[qnum]))
-            print("Points  : {}".format(resp.get("points") ))
-            print("Timeout : {}".format(resp.get("timeout") or "Not Timed"))
-            print("Attempts: {}".format(resp.get("tries") or "UNLIMITED"))
-            print("PREREQ  : {}".format(resp.get("prereq") or "NONE"))
-            print("TEXT    :\n\n{}".format(qtxt))
+            qtable = Table("#","Question","Points","Timeout","Attempts","Prerequisites")
+            qtable.add_row(
+                    "{}".format(qnum),
+                    "{}".format(self.names[qnum]),
+                    "{}".format(resp.get("points")),
+                    "{}".format(resp.get("timeout") or "Not Timed"),
+                    "{}".format(resp.get("tries") or "UNLIMITED"),
+                    "{}".format(resp.get("prereq") or "NONE"))
+            the_console.print(qtable)
+            the_console.print("TEXT:\n{}".format(qtxt))
         return None        
 
     def data(self,qnum):
@@ -148,8 +159,8 @@ class exercise(object):
         """This method takes one argument which should be the answer to the data object you queried last."""
         if notanswer:
             if self.show_answer_warnings:
-                print("Note: In this version .answer() does not require the question number. Only the answer.")
-                print(f"I fixed it for you this time and submitted .answer({notanswer})")
+                theconsole.print("[red] Note: In this version .answer() does not require the question number. Only the answer.")
+                theconsole.print(f"I fixed it for you this time and submitted .answer({notanswer})")
             answer = notanswer
         if not self.loggedin:
             return "Please login first"
@@ -215,10 +226,10 @@ class exercise(object):
         url = f"{self.server}/unittest/"
         resp = self.__post_json(url,{'code':data.strip()})
         if resp.get("text"):
-            print(resp.get('text'))
+            the_console.print(resp.get('text'))
         if resp.get("blob"):
             results = codecs.decode(resp.get("blob").encode(), "base64")
-            print(results.decode())
+            the_console.print(results.decode())
         return
     
     def __post_json(self,url, dict):
@@ -254,3 +265,5 @@ def _collapse_points(lon):
         else:
             answer += eachval+","
     return answer[:-1]
+
+the_console = Console()

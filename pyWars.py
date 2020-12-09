@@ -159,8 +159,8 @@ class exercise(object):
         """This method takes one argument which should be the answer to the data object you queried last."""
         if notanswer:
             if self.show_answer_warnings:
-                theconsole.print("[red] Note: In this version .answer() does not require the question number. Only the answer.")
-                theconsole.print(f"I fixed it for you this time and submitted .answer({notanswer})")
+                the_console.print("[red] Note: In this version .answer() does not require the question number. Only the answer.")
+                the_console.print(f"I fixed it for you this time and submitted .answer({notanswer})")
             answer = notanswer
         if not self.loggedin:
             return "Please login first"

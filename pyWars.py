@@ -78,7 +78,7 @@ class exercise(object):
             print(sb)
         position = 1
         score_table = Table("Rank","Name","Score","Last Scored","Completed", title="Scoreboard", show_lines=True)
-        for name,score_tuple in sorted(sb.items(), key=lambda x:x[1][0], reverse=True):
+        for name,score_tuple in sorted(sb.items(), key=lambda x:(x[1][0],_time_elapsed(x[1][2])), reverse=True):
             score,complete,lastscore = score_tuple
             lsd = datetime.datetime.strptime(lastscore, "%a, %d %b %Y %H:%M:%S %Z")
             lsd = lsd.replace(tzinfo=datetime.timezone.utc).astimezone()
@@ -87,6 +87,7 @@ class exercise(object):
             score_table.add_row(f"{position:0>3}",f"{name}", f"{score:0>3}", f"{date_hour}", f"{finished}")
             if not self.print_rich_text:
                 print(f"{position:0>3}-{name[:15]: ^15} Points:{score:0>3}   Scored:{date_hour}   Completed:{finished}")
+            position += 1
         if self.print_rich_text:
             the_console.print(score_table)
         return None
@@ -244,6 +245,10 @@ class exercise(object):
             print(f"Bad Reqeust. Pywars responded {resp.status_code}")
             return {}
         return resp.json()
+
+def _time_elapsed(timestr):
+    as_dt = datetime.datetime.strptime(timestr, "%a, %d %b %Y %H:%M:%S %Z")
+    return (datetime.datetime.now() - as_dt).total_seconds()
 
 def _collapse_points(lon):
     """Internal Only-Make scoreboard look nice"""

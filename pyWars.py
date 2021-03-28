@@ -141,7 +141,14 @@ class exercise(object):
             return "Question number must be an integer or string"
         tgt_path = pathlib.Path(self.file_location) / new_folder            
         url = f"{self.server}/data/{qnum}"
-        data_blob = self.browser.get(url).json().get("blob").encode()
+        json_blob = self.browser.get(url).json()
+        if not "blob" in json_blob:
+            if self.print_rich_text:
+                the_console.print("[red on bright_yellow] {} ".format(json_blob.get("text","UNABLE TO RETREIVE DATA")))
+            else:
+                print("*** {} ***".format(json_blob.get("text", "UNABLE TO RETRIEVE DATA" )))
+            return None
+        data_blob = json_blob.get("blob").encode()
         data_var = pickle.loads(codecs.decode(data_blob,"base64"))
         if isinstance(data_var,bytes) and data_var.startswith(b"PK"):
             write_file = True

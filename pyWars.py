@@ -76,6 +76,7 @@ class exercise(object):
         sb = resp.get("text",{})
         if not isinstance(sb,dict):
             print(sb)
+            return
         position = 1
         score_table = Table("Rank","Name","Score","Last Scored","Completed", title="Scoreboard", show_lines=True)
         for name,score_tuple in sorted(sb.items(), key=lambda x:(x[1][0],_time_elapsed(x[1][2])), reverse=True):
@@ -249,7 +250,7 @@ class exercise(object):
             return {}
         resp = self.browser.post(url,data)
         if resp.status_code != 200:
-            print(f"Bad Reqeust. Pywars responded {resp.status_code}")
+            print(f"Bad Request. Pywars responded {resp.status_code}")
             return {}
         return resp.json()
 

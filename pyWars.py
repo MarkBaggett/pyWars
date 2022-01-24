@@ -125,8 +125,8 @@ class exercise(object):
             the_console.print("TEXT:\n{}".format(qtxt))
         return None        
 
-    def data(self,qnum):
-        """This method given a question name or number will return the data for the question.  If you also pass True it will assume the data is a zip, write it to your desktop and unzip it."""
+    def data(self,qnum, overwrite=None):
+        """This method given a question name or number will return the data for the question. Optionally set overwrite to control if the any existing folders are overwriten. Only all caps YES will cause it to overwrite. Any version of 'no' will return the data to you instead of overwriteing the folder if the folder already exists."""
         if not self.loggedin:
             return "Please login first"
         if isinstance(qnum, str):
@@ -153,8 +153,11 @@ class exercise(object):
         data_var = pickle.loads(codecs.decode(data_blob,"base64"))
         if isinstance(data_var,bytes) and data_var.startswith(b"PK"):
             write_file = True
-            if tgt_path.exists(): 
+            if tgt_path.exists() and overwrite==None: 
                 write_file = input("The path already exists. Do you want to over write the current directory,\"yes\" or \"no\"? ").lower() == "yes"
+            if overwrite != None:
+                if overwrite.lower().startswith("n"):
+                    write_file = False   
             if write_file:             
                 with tgt_path as write_zip:
                     with zipfile.ZipFile(BytesIO(data_var),"r") as zip_ref:

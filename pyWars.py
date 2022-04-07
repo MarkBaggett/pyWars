@@ -126,7 +126,7 @@ class exercise(object):
         return None        
 
     def data(self,qnum, overwrite=None):
-        """This method given a question name or number will return the data for the question. Optionally set overwrite to control if the any existing folders are overwriten. Only all caps YES will cause it to overwrite. Any version of 'no' will return the data to you instead of overwriteing the folder if the folder already exists."""
+        """This method given a question name or number will return the data for the question. Optionally set overwrite to control whether existing folders are overwritten. Only all caps YES will cause it to overwrite. Any version of 'no' will return the data to you instead of overwriting the folder if the folder already exists."""
         if not self.loggedin:
             return "Please login first"
         if isinstance(qnum, str):

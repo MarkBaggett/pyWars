@@ -7,6 +7,10 @@ import pathlib
 import tempfile
 import sys
 import datetime
+import getpass
+import socket
+import code
+
 from io import BytesIO
 from rich.console import Console
 from rich.table import Table 
@@ -15,27 +19,63 @@ if sys.version_info.major==2:
     input = raw_input
 
 class exercise(object):
-    def __init__(self,url):
-        self.server = url
+    def __init__(self,url=None):
+        self.server = url 
         self.browser = requests.session()
-        self.browser.headers['User-Agent']='sanspywarsgpyc 4.0'
+        self.browser.headers['User-Agent']='sanspywarsgpyc 5.0'
+        self.config_file = pathlib.Path().home() / ".pywars/pywars.config"
         self.names = []
+        self.loggedin = False
         self.hold_username = None
         self.hold_password = None
-        self.loggedin = False
         self.print_rich_text = False
         self.show_all_scores = False
         self.show_answer_warnings = True
         self.file_location = pathlib.Path().home() / "Desktop"
-        
-    def new_acct(self,uname,password,reg_code):
+        if self.config_file.is_file():
+            self.load_config()
+        if not self.server:
+            url= input("What is the hostname for the server (example:live.sec573.com) ? ")
+            self.server = "https://{url}:10000"
+
+    def load_config(self):
+        if not self.config_file.is_file():
+            print("No Configuration file found.")
+            self.save_config()
+        else:
+            try:
+                with self.config_file.open("rt") as fp:
+                    config = json.load(fp)
+            except Exception as e:
+                print(f"An error occured loading the config. {str(e)}.")
+            else:
+                vars(self).update(config)
+
+    def save_config(self):
+        self.config_file.parent.mkdir(exist_ok=True)
+        config = dict(vars(self))
+        del config['names']
+        del config['browser']
+        del config['config_file']
+        del config['file_location']
+        with self.config_file.open("wt") as fp:
+            json.dump(config, fp)
+
+    def new_acct(self,uname=None, password=None, reg_code=None):
         """Use this method to create an account.  It takes three arguments, a username, a password and a registration code."""
         url = f"{self.server}/usernew/"
+        if not uname:
+            uname = input("Enter your username (usually your SANS email): ")
+        if not password:
+            password = getpass.getpass("Type a password for your new account: ")
+        if not reg_code:
+            reg_code = input("Enter the registration code provided by the instructor")
         resp = self.__post_json(url, {'user':uname,'password':password,"reg_code":reg_code} )
         result = resp.get("text","Account Registration Failed")
         if result == "Success":
             self.hold_username = uname
             self.hold_password = password
+            self.save_config()
         return result
 
     def login(self,uname = None,password = None):
@@ -54,6 +94,7 @@ class exercise(object):
             self.hold_password = password
             self.names = resp.get("question_names")
             self.loggedin = True
+            self.save_config()
             return "Login Success"
         else:
             return login
@@ -110,6 +151,9 @@ class exercise(object):
         url = f"{self.server}/question/{qnum}"
         resp = self.browser.get(url).json()
         qtxt = resp.get("text")
+        q_attach = resp.get("has_attachment",False)
+        if q_attach:
+            self.attachment(qnum)
         if not ("timeout" in resp) or (not self.print_rich_text):
             print(qtxt)
         else:
@@ -123,9 +167,37 @@ class exercise(object):
                     "{}".format(resp.get("prereq") or "NONE"))
             the_console.print(qtable)
             the_console.print("TEXT:\n{}".format(qtxt))
-        return None        
+        return None
 
-    def data(self,qnum, overwrite=None):
+    def attachment(self, qnum, overwrite=None):
+        """This method given a question name or number will retreive an attachment."""
+        if not self.loggedin:
+            return "Please login first"
+        if isinstance(qnum, str):
+            new_folder = qnum
+            qnum = self.name2num(qnum)
+            if qnum == -1:
+                return "Invalid Question Name"
+        elif isinstance(qnum,int):
+            new_folder = self.num2name(qnum)
+            if new_folder == -1:
+                return "Invalid Question Number"
+        else:
+            return "Question number must be an integer or string"
+        tgt_path = pathlib.Path(self.file_location) / new_folder            
+        if tgt_path.exists() and overwrite==None:
+            print("Download skipped. The file has already been downloaded. Call .attachment() with overwrite=True to redownload and overwrite the exiting folder.") 
+            return False
+        url = f"{self.server}/attachment/{qnum}"
+        resp = self.browser.get(url).json()
+        attachment = codecs.decode(resp.get("blob").encode(),"base64")
+        with tgt_path as write_zip:
+            with zipfile.ZipFile(BytesIO(attachment),"r") as zip_ref:
+                zip_ref.extractall(write_zip)
+        return f"Zip extracted to {str(tgt_path)}"
+
+
+    def data(self,qnum):
         """This method given a question name or number will return the data for the question. Optionally set overwrite to control whether existing folders are overwritten. Only all caps YES will cause it to overwrite. Any version of 'no' will return the data to you instead of overwriting the folder if the folder already exists."""
         if not self.loggedin:
             return "Please login first"
@@ -151,21 +223,11 @@ class exercise(object):
             return None
         data_blob = json_blob.get("blob").encode()
         data_var = pickle.loads(codecs.decode(data_blob,"base64"))
+        #Remove these two lines for data to just be data and not a zip.
         if isinstance(data_var,bytes) and data_var.startswith(b"PK"):
-            write_file = True
-            if tgt_path.exists() and overwrite==None: 
-                write_file = input("The path already exists. Do you want to over write the current directory,\"yes\" or \"no\"? ").lower() == "yes"
-            if overwrite != None:
-                if overwrite.lower().startswith("n"):
-                    write_file = False   
-            if write_file:             
-                with tgt_path as write_zip:
-                    with zipfile.ZipFile(BytesIO(data_var),"r") as zip_ref:
-                        zip_ref.extractall(write_zip)
-                return f"Zip extracted to {str(tgt_path)}"
-            else:
-                print("You did not type 'yes'. The original directory was not changed.")     
+            return self.write_attachment(data_var)
         return data_var
+
 
     def answer(self,answer,notanswer=None):
         """This method takes one argument which should be the answer to the data object you queried last."""
@@ -283,3 +345,54 @@ def _collapse_points(lon):
     return answer[:-1]
 
 the_console = Console()
+
+if __name__ == "__main__":
+    if not (pathlib.Path().home() / ".pywars/pywars.config").is_file():
+
+        while True:
+            hostname = input("What is the hostname of the server? ")
+            try:
+                ip_addr = socket.gethostbyname(hostname)
+            except:
+                print("That host is not reachable. Check your network connection and confirm the hostname.")
+            else:
+                break
+
+        while True:
+            username = input("What is your email address for the SANS Portal? ")
+            if len(username) < 4:
+                print("Your username must be at least 4 letters.")
+            else:
+                break
+
+        while True:
+            passwd = input("Give me a new pyWars password for this weeks class (Dont give me your SANS password): ")
+            if len(passwd) < 10 or not( 
+                any(map(lambda x:x.islower(),passwd)) and
+                any(map(lambda x:x.isupper(),passwd)) and
+                any(map(lambda x:x.isdigit(),passwd)) ):
+                    print("Must be 10 characters with an upper, lower and digit.")
+            else:
+                break
+
+        try:
+            client = exercise(f"https://{hostname}:10000")
+            resp = client.login( username, passwd)
+            if not "success" in resp.lower():
+                print(resp)
+        except:
+            while True:
+                reg_code = input("What is the registration code provided by the instructor.")
+                client = exercise(f"https://{hostname}:10000")
+                resp = client.new_acct( username, passwd, reg_code)
+                if "success" in resp.lower():
+                    client.login()
+                    break
+                else:
+                    print("That is incorrect.")
+    else:
+        client = exercise()
+        client.login()
+
+    d = client
+    code.interact("Welcome to pyWars", local=locals())

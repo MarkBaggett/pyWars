@@ -40,5 +40,79 @@ Once your account the account is created and logged in you can use the following
 
 
 
+## pywars client V5 - 2023
+There is a new pywars client also available for testing. No support is offered for this client during class until its official release. 
+
+### Installation
+
+Install from the @version5 branch
+```
+student@SEC573:~/Downloads$ python -m venv ~/python-envs/pywars5
+student@SEC573:~/Downloads$ source ~/python-envs/pywars5/bin/activate
+(pywars5) student@SEC573:~/Downloads$ pip install git+https://github.com/markbaggett/pywars@version5
+Collecting git+https://github.com/markbaggett/pywars@version5
+  Cloning https://github.com/markbaggett/pywars (to revision version5) to /tmp/pip-req-build-rt07i8zv
+  Running command git clone -q https://github.com/markbaggett/pywars /tmp/pip-req-build-rt07i8zv
+  Running command git checkout -b version5 --track origin/version5
+  Switched to a new branch 'version5'
+```
+
+Output truncated.
+
+### Changes to module
+
+I've decided to use PEP-8 compliant names for this next version.  Exercise() is now Client() as it more accuratly describes the purpose.
+
+```
+(pw-client) student@SEC573:~/git/pywars$ python
+>>> import pywars
+>>> d = pywars.Client('https://live.sec573.com:10000')
+>>> d.login('mbaggett@sans.org','MyPassword1')
+```
+
+### pywars command.
+
+You now have a pywars command which helps with setup and maintains user profiles for CTF and days 1-5.
+If provided username does not exists it prompts for registration code and creates the account, then logs you in.
+
+```
+(pywars5) student@SEC573:~/Downloads$ pywars
+What is the hostname (example: live.sec573.com) of the server? live.sec573.com
+What is registration email address on the SANS Portal? mbaggett@sans.org
+Give me a new pyWars password for this class (keystrokes not displayed): TYPE PASSWORD HERE
+Welcome to pyWars
+>>> 
+now exiting InteractiveConsole...
+```
+
+You can setup a new profile for CTF with -n
+
+```
+(pywars5) student@SEC573:~/Downloads$ pywars -n
+What is the hostname (example: live.sec573.com) of the server? live.sec573.com
+What is registration email address on the SANS Portal? CTF-LOGIN
+Give me a new pyWars password for this class (keystrokes not displayed): CTF PASSWORD HERE
+Welcome to pyWars
+>>> 
+now exiting InteractiveConsole...
+```
+
+You can switch between user profiles with -s.
+
+```
+(pywars5) student@SEC573:~/Downloads$ pywars -s
+┏━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+┃ # ┃ Server                        ┃ Username          ┃ Current Default ┃
+┡━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+│ 0 │ https://live.sec573.com:10000 │ mbaggett@sans.org │ Y               │
+│ 1 │ https://live.sec573.com:10000 │ ctf-team-login    │ N               │
+└───┴───────────────────────────────┴───────────────────┴─────────────────┘
+Which profile number would you like to load?0
+Welcome to pyWars
+>>> 
+now exiting InteractiveConsole...
+
+
+
 
 

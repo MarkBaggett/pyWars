@@ -134,6 +134,23 @@ Which profile number would you like to load?0
 Welcome to pyWars
 >>> 
 now exiting InteractiveConsole...
+```
+
+And the bash command `pywars` just reloads the default (selected) profile and logs you in.
+
+```
+$ pywars
+Welcome to pyWars
+>>> d.score()
+                      Scoreboard                       
+┏━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Rank ┃ Name  ┃ Score ┃ Last Scored     ┃ Completed  ┃
+┡━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ 001  │ markb │ 009   │ Sep,13 19:57:45 │ 1,3-7,9-12 │
+└──────┴───────┴───────┴─────────────────┴────────────┘
+>>> 
+```
+
 
 
 

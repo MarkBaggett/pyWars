@@ -28,7 +28,7 @@ class Client(object):
         self.loggedin = False
         self.hold_username = None
         self.hold_password = None
-        self.print_rich_text = False
+        self.print_rich_text = True
         self.show_all_scores = False
         self.show_answer_warnings = True
         self.console = Console()
@@ -122,7 +122,6 @@ class Client(object):
         del config['profile']
         del config['default_profile']
         del config['console']
-        breakpoint()
         with self.config_file.open("wt") as fp:
             json.dump(config, fp)
 
@@ -290,7 +289,10 @@ class Client(object):
         data_var = pickle.loads(codecs.decode(data_blob,"base64"))
         #Remove these two lines for data to just be data and not a zip.
         if isinstance(data_var,bytes) and data_var.startswith(b"PK"):
-            return self.write_attachment(data_var)
+            with tgt_path as write_zip:
+                with zipfile.ZipFile(BytesIO(data_var),"r") as zip_ref:
+                    zip_ref.extractall(write_zip)
+            return f"Zip extracted to {str(tgt_path)}"
         return data_var
 
 

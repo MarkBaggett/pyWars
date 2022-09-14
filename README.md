@@ -70,6 +70,29 @@ I've decided to use PEP-8 compliant names for this next version.  Exercise() is 
 >>> d.login('mbaggett@sans.org','MyPassword1')
 ```
 
+Also, when a profile exists it will be reloaded. Profiles hold the server, username, password and other student preference settings such as print_rich_text and show_all_scores. Students can usually restart a session with just running these commands.
+
+```
+import pywars
+d = pywars.Client()
+d.login()
+```
+
+Students can restart a session by just typing `pywars` at a bash prompt. See pywars command section for more details.
+
+```
+$ pywars
+Welcome to pyWars
+>>> d.score()
+                      Scoreboard                       
+┏━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Rank ┃ Name  ┃ Score ┃ Last Scored     ┃ Completed  ┃
+┡━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ 001  │ markb │ 009   │ Sep,13 19:57:45 │ 1,3-7,9-12 │
+└──────┴───────┴───────┴─────────────────┴────────────┘
+>>> 
+```
+
 ### pywars command.
 
 You now have a pywars command which helps with setup and maintains user profiles for CTF and days 1-5.

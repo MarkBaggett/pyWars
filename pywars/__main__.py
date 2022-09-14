@@ -5,12 +5,12 @@ import argparse
 import re
 import getpass
 import json
+import sys
 
 
 from pywars.client import Client
 
 def get_hostname():
-    return "https://testing.com"
     while True:
         hostname = input("What is the hostname (example: live.sec573.com) of the server? ")
         if not re.match(r"\w+\.sec[56]73\.com",hostname):
@@ -57,11 +57,14 @@ def new_profile(pywars_client):
     pywars_client.profile = "profile1.config"
     pywars_client.config_file = pathlib.Path().home() / f".pywars/{pywars_client.profile}"
     account_exists = pywars_client.login()
-    while account_exists != "success":
+    while account_exists != 'Login Success':
         create = input("That account does not exist. Check the password and try again. In Person class student type YES to create it now: ").lower()
         if create == "yes":
             reg_code = input("What is the registration code provided by the intructor? ")
             pywars_client.new_acct(pywars_client.hold_username, pywars_client.hold_password, reg_code)
+        else:
+            pywars_client.hold_username = get_username()
+            pywars_client.hold_password = get_password()
         account_exists = pywars_client.login()
 
 
@@ -108,8 +111,10 @@ def main():
         pywars_client.select_profile()
     elif args.reset:
         prof_folder = pathlib.Path().home() / ".pywars"
-        for eachfile in prof_folder():
+        for eachfile in prof_folder.glob("*.config"):
             eachfile.unlink()
+        print("Profiles reset.")
+        sys.exit(0)
         
     #Create a client and interact
     

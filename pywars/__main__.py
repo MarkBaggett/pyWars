@@ -6,6 +6,9 @@ import re
 import getpass
 import json
 import sys
+import atexit
+import rlcompleter
+import readline
 
 
 from pywars.client import Client
@@ -93,6 +96,11 @@ def new_profile(pywars_client):
         #     except Exception as e:
         #         print(f"An error occured loading the config. {str(e)}.")
 
+def save_history():
+    with (pathlib.Path().home() / ".python_history") as history_path:
+        readline.write_history_file(history_path)
+
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('-n','--new',action='store_true',required=False,help='Create a new connection profile')
@@ -124,4 +132,9 @@ def main():
         print("An error occurred connecing to pywars. Please check your network configuration.\n\n", str(e))
     else:
         d = pywars_client
-        code.interact("Welcome to pyWars", local=locals())
+        with (pathlib.Path().home() / ".python_history") as history_path:
+            readline.read_history_file(history_path)                                                    
+        readline.set_completer(rlcompleter.Completer(locals()).complete)
+        readline.parse_and_bind("tab: complete")
+        atexit.register(save_history)
+        code.interact(local=locals())

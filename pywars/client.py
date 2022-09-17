@@ -250,7 +250,7 @@ class Client(object):
             return "Question number must be an integer or string"
         tgt_path = pathlib.Path(self.file_location) / new_folder            
         if tgt_path.exists() and overwrite==None:
-            print("Download skipped. The file has already been downloaded. Call .attachment() with overwrite=True to redownload and overwrite the exiting folder.") 
+            self.console.print("[bold red]Folder download skipped because the folder already exists. Call .attachment('labname',overwrite=True) to redownload and overwrite the exiting folder.[/bold red]") 
             return False
         url = f"{self.server}/attachment/{qnum}"
         resp = self.browser.get(url).json()

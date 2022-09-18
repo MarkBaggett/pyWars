@@ -50,47 +50,47 @@ def get_password():
             break
     return passwd
 
-def new_profile(pywars_client):
-    pywars_client.default_profile.parent.mkdir(exist_ok=True)
-    pywars_client.server = get_hostname()
-    dconfig = {"profile":"profile1.config","host":pywars_client.server }
-    pywars_client.default_profile.write_text(json.dumps(dconfig))
-    pywars_client.hold_username = get_username()
-    pywars_client.hold_password = get_password()
-    pywars_client.profile = "profile1.config"
-    pywars_client.config_file = pathlib.Path().home() / f".pywars/{pywars_client.profile}"
-    account_exists = pywars_client.login()
+def new_profile(client):
+    client.default_profile.parent.mkdir(exist_ok=True)
+    client.server = get_hostname()
+    dconfig = {"profile":"profile1.config","host":client.server }
+    client.default_profile.write_text(json.dumps(dconfig))
+    client.hold_username = get_username()
+    client.hold_password = get_password()
+    client.profile = "profile1.config"
+    client.config_file = pathlib.Path().home() / f".pywars/{client.profile}"
+    account_exists = client.login()
     while account_exists != 'Login Success':
         create = input("That account does not exist. Check the password and try again. In Person class student type YES to create it now: ").lower()
         if create == "yes":
-            reg_code = input("What is the registration code provided by the intructor? ")
-            pywars_client.new_acct(pywars_client.hold_username, pywars_client.hold_password, reg_code)
+            reg_code = input("What is the registration code provided by the instructor? ")
+            client.new_acct(client.hold_username, client.hold_password, reg_code)
         else:
-            pywars_client.hold_username = get_username()
-            pywars_client.hold_password = get_password()
-        account_exists = pywars_client.login()
+            client.hold_username = get_username()
+            client.hold_password = get_password()
+        account_exists = client.login()
 
 
 ###   
-#      pywars_client.default_profile = pathlib.Path().home() / ".pywars/default.config"
-        # if not pywars_client.default_profile.is_file():
-        #     pywars_client.default_profile.parent.mkdir(exist_ok=True)
-        #     pywars_client.server = get_hostname()
-        #     dconfig = {"profile":"profile1.config","host":pywars_client.server }
-        #     pywars_client.default_profile.write_text(json.dumps(dconfig))
-        #     pywars_client.profile = "profile1.config"
-        #     pywars_client.hold_username = get_username()
-        #     pywars_client.hold_password = get_password()
-        #     pywars_client.config_file = pathlib.Path().home() / f".pywars/{pywars_client.profile}"
+#      client.default_profile = pathlib.Path().home() / ".pywars/default.config"
+        # if not client.default_profile.is_file():
+        #     client.default_profile.parent.mkdir(exist_ok=True)
+        #     client.server = get_hostname()
+        #     dconfig = {"profile":"profile1.config","host":client.server }
+        #     client.default_profile.write_text(json.dumps(dconfig))
+        #     client.profile = "profile1.config"
+        #     client.hold_username = get_username()
+        #     client.hold_password = get_password()
+        #     client.config_file = pathlib.Path().home() / f".pywars/{client.profile}"
         # else:
         #     try:
-        #         with pywars_client.default_profile.open("rt") as fp:
+        #         with client.default_profile.open("rt") as fp:
         #             config = json.load(fp)
-        #         pywars_client.profile = config.get("profile")
-        #         pywars_client.server = pywars_client.server or config.get("host", None)
-        #         pywars_client.config_file = pathlib.Path().home() / f".pywars/{pywars_client.profile}"
-        #         if pywars_client.config_file.is_file():
-        #             pywars_client.load_profile()
+        #         client.profile = config.get("profile")
+        #         client.server = client.server or config.get("host", None)
+        #         client.config_file = pathlib.Path().home() / f".pywars/{client.profile}"
+        #         if client.config_file.is_file():
+        #             client.load_profile()
         #         else:
         #             print("No config loaded.")
         #     except Exception as e:
@@ -112,11 +112,11 @@ def main():
     #Ondemand already has username and password
     #Ctf already has username and password
     #Live students need to register
-    pywars_client = Client()
-    if not pywars_client.default_profile.is_file() or args.new:
-        new_profile(pywars_client)
+    client = Client()
+    if not client.default_profile.is_file() or args.new:
+        new_profile(client)
     elif args.switch:
-        pywars_client.select_profile()
+        client.select_profile()
     elif args.reset:
         prof_folder = pathlib.Path().home() / ".pywars"
         for eachfile in prof_folder.glob("*.config"):
@@ -127,14 +127,14 @@ def main():
     #Create a client and interact
     
     try:
-        pywars_client.login()
+        client.login()
     except Exception as e:
         print("An error occurred connecing to pywars. Please check your network configuration.\n\n", str(e))
     else:
-        d = pywars_client
+        d = client
         with (pathlib.Path().home() / ".python_history") as history_path:
             readline.read_history_file(history_path)                                                    
         readline.set_completer(rlcompleter.Completer(locals()).complete)
         readline.parse_and_bind("tab: complete")
         atexit.register(save_history)
-        code.interact(local=locals())
+        code.interact("Welcome to pywars!",local=locals())

@@ -34,7 +34,8 @@ class Client(object):
         self.console = Console()
         self.file_location = pathlib.Path().home() / "Desktop"
         self.default_profile = pathlib.Path().home() / ".pywars/default.config"
-        if self.default_profile.is_file():
+        #If they didn't specify a URL then try to load a profile
+        if self.default_profile.is_file() and self.server != None:
             try:
                 with self.default_profile.open("rt") as fp:
                     config = json.load(fp)

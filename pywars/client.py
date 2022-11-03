@@ -41,7 +41,7 @@ class Client(object):
                     config = json.load(fp)
                 self.profile = config.get("profile")
                 self.server = self.server or config.get("host", None)
-                self.config_file = pathlib.Path().home() / f".pywars/{self.profile}"
+                self.config_file = pathlib.Path().home() / f".pywars/{self.profile}.config"
                 if self.config_file.is_file():
                     self.load_profile()
                 else:
@@ -49,8 +49,8 @@ class Client(object):
             except Exception as e:
                 print(f"An error occured loading the config. {str(e)}.")
         else:
-            self.profile = "profile1.config"
-            self.config_file = pathlib.Path().home() / f".pywars/{self.profile}"
+            self.profile = "profile1"
+            self.config_file = pathlib.Path().home() / f".pywars/{self.profile}.config"
 
     def select_profile(self,profile_name=None):
         """This method is used to select which client setting to use by default"""
@@ -76,7 +76,7 @@ class Client(object):
         self.config_file = pathlib.Path().home() / f".pywars/{profile_name}.config"
         self.load_profile()
         #set as Default
-        dconfig = {"profile":f"{profile_name}.config","host":self.server }
+        dconfig = {"profile":f"{profile_name}","host":self.server }
         self.default_profile.write_text(json.dumps(dconfig))
 
     def load_profile(self):
@@ -113,8 +113,14 @@ class Client(object):
            new_number = int(profile_number) + 1
            self.profile = f"profile{new_number}"
            self.config_file = pathlib.Path().home() / f".pywars/{self.profile}.config"
-        #save the current object to the current profile name   
+        #Make sure .pwars folder exists
         self.config_file.parent.mkdir(exist_ok=True)
+
+        #set the default profile to be the current profile
+        dconfig = {"profile":f"{self.profile}","host":self.server }
+        self.default_profile.write_text(json.dumps(dconfig))
+
+        #save the current object to the current profile name   
         config = dict(vars(self))
         del config['names']
         del config['browser']

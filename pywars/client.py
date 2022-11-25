@@ -72,12 +72,13 @@ class Client(object):
             except:
                 print("That is an invalid profile number")
                 pass
-        #Load it
-        self.config_file = pathlib.Path().home() / f".pywars/{profile_name}.config"
-        self.load_profile()
         #set as Default
         dconfig = {"profile":f"{profile_name}","host":self.server }
         self.default_profile.write_text(json.dumps(dconfig))
+        #Load it
+        self.config_file = pathlib.Path().home() / f".pywars/{profile_name}.config"
+        self.load_profile()
+
 
     def load_profile(self):
         """This method will load the current configuration file."""

@@ -75,6 +75,7 @@ class Client(object):
         #set as Default
         dconfig = {"profile":f"{profile_name}","host":self.server }
         self.default_profile.write_text(json.dumps(dconfig))
+        self.profile = profile_name
         #Load it
         self.config_file = pathlib.Path().home() / f".pywars/{profile_name}.config"
         self.load_profile()

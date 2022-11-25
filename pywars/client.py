@@ -61,7 +61,7 @@ class Client(object):
         ptable = Table("#","Server","Username","Current Default")
         for pos, each_profile in enumerate(profile_list):
             config_info = json.loads(each_profile.read_text())
-            current = "Y" if each_profile.name == current_default else "N"
+            current = "Y" if each_profile.stem == current_default else "N"
             ptable.add_row(str(pos), config_info['server'], config_info['hold_username'], current )
         #Select one 
         while profile_name == None:

@@ -96,7 +96,7 @@ class Client(object):
     def save_profile(self, no_new_profile=False):
         """This profile saves the current settings to a profile. If the login info changed it creates a new profile unless the no_new_profile argument is True."""
         #Load the current config for comparison to check for changes
-        current_config = None
+        current_config = {}
         try:
             current_config = json.loads(self.config_file.read_text())
         except Exception as e:
@@ -113,7 +113,7 @@ class Client(object):
            new_number = int(profile_number) + 1
            self.profile = f"profile{new_number}"
            self.config_file = pathlib.Path().home() / f".pywars/{self.profile}.config"
-        #Make sure .pwars folder exists
+        #Make sure .pywars folder exists
         self.config_file.parent.mkdir(exist_ok=True)
 
         #set the default profile to be the current profile

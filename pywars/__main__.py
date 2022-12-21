@@ -61,40 +61,16 @@ def new_profile(client):
     client.config_file = pathlib.Path().home() / f".pywars/{client.profile}"
     account_exists = client.login()
     while account_exists != 'Login Success':
-        create = input("That account does not exist. Check the password and try again. In Person class student type YES to create it now: ").lower()
-        if create == "yes":
+        print("The password is incorrect or the account does not exist. Type 'no' to try another username and password. ")
+        create = input("In person students should type 'yes' if the instructor has given you a registration code : ").lower()
+        if create.startswith("y"):
             reg_code = input("What is the registration code provided by the instructor? ")
-            client.new_acct(client.hold_username, client.hold_password, reg_code)
+            print(client.new_acct(client.hold_username, client.hold_password, reg_code))
         else:
             client.hold_username = get_username()
             client.hold_password = get_password()
         account_exists = client.login()
 
-
-###   
-#      client.default_profile = pathlib.Path().home() / ".pywars/default.config"
-        # if not client.default_profile.is_file():
-        #     client.default_profile.parent.mkdir(exist_ok=True)
-        #     client.server = get_hostname()
-        #     dconfig = {"profile":"profile1.config","host":client.server }
-        #     client.default_profile.write_text(json.dumps(dconfig))
-        #     client.profile = "profile1.config"
-        #     client.hold_username = get_username()
-        #     client.hold_password = get_password()
-        #     client.config_file = pathlib.Path().home() / f".pywars/{client.profile}"
-        # else:
-        #     try:
-        #         with client.default_profile.open("rt") as fp:
-        #             config = json.load(fp)
-        #         client.profile = config.get("profile")
-        #         client.server = client.server or config.get("host", None)
-        #         client.config_file = pathlib.Path().home() / f".pywars/{client.profile}"
-        #         if client.config_file.is_file():
-        #             client.load_profile()
-        #         else:
-        #             print("No config loaded.")
-        #     except Exception as e:
-        #         print(f"An error occured loading the config. {str(e)}.")
 
 def save_history():
     with (pathlib.Path().home() / ".python_history") as history_path:
@@ -138,3 +114,6 @@ def main():
         readline.parse_and_bind("tab: complete")
         atexit.register(save_history)
         code.interact("Welcome to pywars!",local=locals())
+
+if __name__=="__main__":
+    main()

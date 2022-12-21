@@ -41,7 +41,7 @@ class Client(object):
                     config = json.load(fp)
                 self.profile = config.get("profile")
                 self.server = self.server or config.get("host", None)
-                self.config_file = pathlib.Path().home() / f".pywars/{self.profile}.config"
+                self.config_file = pathlib.Path().home() / f".pywars/{self.profile}"
                 if self.config_file.is_file():
                     self.load_profile()
                 else:
@@ -49,8 +49,8 @@ class Client(object):
             except Exception as e:
                 print(f"An error occured loading the config. {str(e)}.")
         else:
-            self.profile = "profile1"
-            self.config_file = pathlib.Path().home() / f".pywars/{self.profile}.config"
+            self.profile = "profile1.config"
+            self.config_file = pathlib.Path().home() / f".pywars/{self.profile}"
 
     def select_profile(self,profile_name=None):
         """This method is used to select which client setting to use by default"""
@@ -61,14 +61,14 @@ class Client(object):
         ptable = Table("#","Server","Username","Current Default")
         for pos, each_profile in enumerate(profile_list):
             config_info = json.loads(each_profile.read_text())
-            current = "Y" if each_profile.stem == current_default else "N"
+            current = "Y" if each_profile.name == current_default else "N"
             ptable.add_row(str(pos), config_info['server'], config_info['hold_username'], current )
         #Select one 
         while profile_name == None:
             self.console.print(ptable)
             try:
                 profile_num = int(input("Which profile number would you like to load?"))
-                profile_name = profile_list[profile_num].stem
+                profile_name = profile_list[profile_num].name
             except:
                 print("That is an invalid profile number")
                 pass
@@ -77,7 +77,7 @@ class Client(object):
         self.default_profile.write_text(json.dumps(dconfig))
         self.profile = profile_name
         #Load it
-        self.config_file = pathlib.Path().home() / f".pywars/{profile_name}.config"
+        self.config_file = pathlib.Path().home() / f".pywars/{profile_name}"
         self.load_profile()
 
 
@@ -113,8 +113,8 @@ class Client(object):
 
            profile_number = re.search(r"\d+$", self.config_file.stem).group()
            new_number = int(profile_number) + 1
-           self.profile = f"profile{new_number}"
-           self.config_file = pathlib.Path().home() / f".pywars/{self.profile}.config"
+           self.profile = f"profile{new_number}.config"
+           self.config_file = pathlib.Path().home() / f".pywars/{self.profile}"
         #Make sure .pywars folder exists
         self.config_file.parent.mkdir(exist_ok=True)
 

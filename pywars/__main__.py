@@ -1,3 +1,4 @@
+import os
 import pathlib
 import socket
 import code
@@ -7,8 +8,10 @@ import getpass
 import json
 import sys
 import atexit
-import rlcompleter
-import readline
+
+if os.name != "nt":
+    import rlcompleter
+    import readline
 
 
 from pywars.client import Client
@@ -107,12 +110,13 @@ def main():
     except Exception as e:
         print("An error occurred connecing to pywars. Please check your network configuration.\n\n", str(e))
     else:
+        if os.name != "nt":   
+            with (pathlib.Path().home() / ".python_history") as history_path:
+                readline.read_history_file(history_path)                                                    
+            readline.set_completer(rlcompleter.Completer(locals()).complete)
+            readline.parse_and_bind("tab: complete")
+            atexit.register(save_history)
         d = client
-        with (pathlib.Path().home() / ".python_history") as history_path:
-            readline.read_history_file(history_path)                                                    
-        readline.set_completer(rlcompleter.Completer(locals()).complete)
-        readline.parse_and_bind("tab: complete")
-        atexit.register(save_history)
         code.interact("Welcome to pywars!",local=locals())
 
 if __name__=="__main__":

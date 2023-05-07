@@ -18,7 +18,7 @@ class exercise(object):
     def __init__(self,url):
         self.server = url
         self.browser = requests.session()
-        self.browser.headers['User-Agent']='sanspywarsgpyc 4.0'
+        self.browser.headers['User-Agent']='python client 1.0'
         self.names = []
         self.hold_username = None
         self.hold_password = None
@@ -81,7 +81,7 @@ class exercise(object):
         score_table = Table("Rank","Name","Score","Last Scored","Completed", title="Scoreboard", show_lines=True)
         for name,score_tuple in sorted(sb.items(), key=lambda x:(x[1][0],_time_elapsed(x[1][2])), reverse=True):
             score,complete,lastscore = score_tuple
-            lsd = datetime.datetime.strptime(lastscore, "%a, %d %b %Y %H:%M:%S %Z")
+            lsd = datetime.datetime.strptime(lastscore, "%a, %d %b %Y %H:%M:%S")
             lsd = lsd.replace(tzinfo=datetime.timezone.utc).astimezone()
             date_hour = datetime.datetime.strftime(lsd, "%b,%d %H:%M:%S")
             finished = _collapse_points(complete)
@@ -140,7 +140,7 @@ class exercise(object):
                 return "Invalid Question Number"
         else:
             return "Question number must be an integer or string"
-        tgt_path = pathlib.Path(self.file_location) / new_folder            
+        tgt_path = pathlib.Path(self.file_location) / new_folder         
         url = f"{self.server}/data/{qnum}"
         json_blob = self.browser.get(url).json()
         if not "blob" in json_blob:
@@ -199,14 +199,14 @@ class exercise(object):
         return resp.get("text")
 
     def name2num(self,name):
-        """The DNS of pywars questions. Given a question name returns the question number"""
+        """The DNS of questions. Given a question name returns the question number"""
         if name.lower() in self.names:
             return self.names.index(name.lower())
         else:
             return -1
 
     def num2name(self,qnum):
-        """The reverse DNS of pywars questions. Given a question number returns the question name"""
+        """The reverse DNS of questions. Given a question number returns the question name"""
         if 0 <= qnum < len(self.names):
             return self.names[qnum]
         else:
@@ -253,12 +253,12 @@ class exercise(object):
             return {}
         resp = self.browser.post(url,data)
         if resp.status_code != 200:
-            print(f"Bad Request. Pywars responded {resp.status_code}")
+            print(f"Bad Request. Response {resp.status_code}")
             return {}
         return resp.json()
 
 def _time_elapsed(timestr):
-    as_dt = datetime.datetime.strptime(timestr, "%a, %d %b %Y %H:%M:%S %Z")
+    as_dt = datetime.datetime.strptime(timestr, "%a, %d %b %Y %H:%M:%S")
     return (datetime.datetime.now() - as_dt).total_seconds()
 
 def _collapse_points(lon):

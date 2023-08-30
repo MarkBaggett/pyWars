@@ -8,6 +8,7 @@ import getpass
 import json
 import sys
 import atexit
+import time
 
 if os.name != "nt":
     import rlcompleter
@@ -72,6 +73,7 @@ def new_profile(client):
         else:
             client.hold_username = get_username()
             client.hold_password = get_password()
+        time.sleep(1)
         account_exists = client.login()
 
 

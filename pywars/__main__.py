@@ -78,8 +78,8 @@ def new_profile(client):
 
 
 def save_history():
-    with (pathlib.Path().home() / ".python_history") as history_path:
-        readline.write_history_file(history_path)
+    history_path = pathlib.Path().home() / ".python_history"
+    readline.write_history_file(str(history_path))   
 
 
 def main():
@@ -113,13 +113,14 @@ def main():
         print("An error occurred connecing to pywars. Please check your network configuration.\n\n", str(e))
     else:
         if os.name != "nt":   
-            with (pathlib.Path().home() / ".python_history") as history_path:
-                readline.read_history_file(history_path)                                                    
+            history_path = pathlib.Path().home() / ".python_history"
+            readline.read_history_file(str(history_path))                                                    
             readline.set_completer(rlcompleter.Completer(locals()).complete)
             readline.parse_and_bind("tab: complete")
             atexit.register(save_history)
         d = client
         code.interact("Welcome to pywars!",local=locals())
+
 
 if __name__=="__main__":
     main()

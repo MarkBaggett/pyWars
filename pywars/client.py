@@ -264,9 +264,8 @@ class Client(object):
         url = f"{self.server}/attachment/{qnum}"
         resp = self.browser.get(url).json()
         attachment = codecs.decode(resp.get("blob").encode(),"base64")
-        with tgt_path as write_zip:
-            with zipfile.ZipFile(BytesIO(attachment),"r") as zip_ref:
-                zip_ref.extractall(write_zip)
+        with zipfile.ZipFile(BytesIO(attachment),"r") as zip_ref:
+            zip_ref.extractall(str(tgt_path))
         return f"Zip extracted to {str(tgt_path)}"
 
 
@@ -298,9 +297,8 @@ class Client(object):
         data_var = pickle.loads(codecs.decode(data_blob,"base64"))
         #Remove these two lines for data to just be data and not a zip.
         if isinstance(data_var,bytes) and data_var.startswith(b"PK"):
-            with tgt_path as write_zip:
-                with zipfile.ZipFile(BytesIO(data_var),"r") as zip_ref:
-                    zip_ref.extractall(write_zip)
+            with zipfile.ZipFile(BytesIO(data_var),"r") as zip_ref:
+                zip_ref.extractall(str(tgt_path))
             return f"Zip extracted to {str(tgt_path)}"
         return data_var
 

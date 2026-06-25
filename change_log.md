@@ -14,3 +14,6 @@ Bug Fixes
 
 #5.0.3
 Add Compatibility with Windows systems
+
+#5.0.5
+Add retry on server connection rejection

@@ -10,6 +10,7 @@ import datetime
 import getpass
 import json
 import re
+import time
 
 from io import BytesIO
 from rich.console import Console
@@ -19,10 +20,36 @@ if sys.version_info.major==2:
     input = raw_input
 
 
+REQUEST_RETRIES = 5
+REQUEST_RETRY_SLEEP = 0.1
+REQUEST_RETRY_EXCEPTIONS = (
+    requests.exceptions.ConnectionError,
+    requests.exceptions.Timeout,
+    requests.exceptions.ChunkedEncodingError,
+)
+
+
+class RetryingSession(requests.Session):
+    """Requests session with a short retry loop for transient disconnects."""
+    def __init__(self, retries=REQUEST_RETRIES, retry_sleep=REQUEST_RETRY_SLEEP):
+        super().__init__()
+        self.retries = retries
+        self.retry_sleep = retry_sleep
+
+    def request(self, method, url, **kwargs):
+        for retry_number in range(self.retries + 1):
+            try:
+                return super().request(method, url, **kwargs)
+            except REQUEST_RETRY_EXCEPTIONS:
+                if retry_number == self.retries:
+                    raise
+                time.sleep(self.retry_sleep)
+
+
 class Client(object):
     def __init__(self,url=None):
         self.server = url 
-        self.browser = requests.session()
+        self.browser = RetryingSession()
         self.browser.headers['User-Agent']='sanspywarsgpyc 5.0'
         self.names = []
         self.loggedin = False
